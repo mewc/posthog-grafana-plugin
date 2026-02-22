@@ -5,3 +5,4 @@ vendor/
 coverage/
 .eslintcache
 *.log
+.env*

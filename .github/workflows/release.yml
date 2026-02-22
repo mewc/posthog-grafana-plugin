@@ -35,13 +35,42 @@ jobs:
         run: npx --yes @grafana/sign-plugin@latest
         if: env.GRAFANA_ACCESS_POLICY_TOKEN != ''
 
+      - name: Validate plugin
+        run: |
+          npx --yes @grafana/plugin-validator@latest \
+            -sourceCodeUri file://. \
+            dist/
+        continue-on-error: true
+
       - name: Package plugin
         run: |
-          mv dist/ mewc-posthog-datasource
+          cp -r dist mewc-posthog-datasource
           zip -r mewc-posthog-datasource-${{ github.ref_name }}.zip mewc-posthog-datasource/
+
+      - name: Generate checksum
+        run: |
+          sha1sum mewc-posthog-datasource-${{ github.ref_name }}.zip > mewc-posthog-datasource-${{ github.ref_name }}.zip.sha1
+          md5sum mewc-posthog-datasource-${{ github.ref_name }}.zip > mewc-posthog-datasource-${{ github.ref_name }}.zip.md5
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: mewc-posthog-datasource-*.zip
+          files: |
+            mewc-posthog-datasource-${{ github.ref_name }}.zip
+            mewc-posthog-datasource-${{ github.ref_name }}.zip.sha1
+            mewc-posthog-datasource-${{ github.ref_name }}.zip.md5
           generate_release_notes: true
+          body: |
+            ## Installation
+
+            ```bash
+            grafana-cli \
+              --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/${{ github.ref_name }}/mewc-posthog-datasource-${{ github.ref_name }}.zip \
+              plugins install mewc-posthog-datasource
+            ```
+
+            Then add `allow_loading_unsigned_plugins = mewc-posthog-datasource` to `grafana.ini` and restart Grafana.
+
+            ## Checksums
+
+            See `.sha1` and `.md5` files attached to this release.
