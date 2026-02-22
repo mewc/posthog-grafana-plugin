@@ -4,36 +4,54 @@ Query [PostHog](https://posthog.com) data directly from Grafana using **HogQL** 
 
 ## Features
 
-- Write HogQL queries with a Monaco SQL editor
+- HogQL query editor with Monaco SQL highlighting
 - Time range macros (`$__timeFrom`, `$__timeTo`) integrate with Grafana's time picker
-- Supports Grafana dashboard variables
-- Backend plugin — API keys are stored encrypted, queries run server-side
-- Supports Grafana alerting
+- Grafana dashboard variable support
+- Go backend — API keys stored encrypted, queries execute server-side
+- Alerting support
 
 ## Installation
 
 ### From GitHub Release
 
 ```bash
-grafana-cli --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/v1.0.0/mewc-posthog-datasource-v1.0.0.zip plugins install mewc-posthog-datasource
+grafana-cli \
+  --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/v1.0.0/mewc-posthog-datasource-v1.0.0.zip \
+  plugins install mewc-posthog-datasource
 ```
 
-### Manual
+Since this plugin is not yet signed via the Grafana catalog, you need to allow it explicitly.
 
-1. Download the latest release zip
-2. Extract to your Grafana plugins directory (e.g. `/var/lib/grafana/plugins/`)
-3. Add to `grafana.ini`: `allow_loading_unsigned_plugins = mewc-posthog-datasource`
+Add to `grafana.ini`:
+
+```ini
+[plugins]
+allow_loading_unsigned_plugins = mewc-posthog-datasource
+```
+
+Or as an environment variable (useful for Docker/Kubernetes):
+
+```bash
+GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=mewc-posthog-datasource
+```
+
+Restart Grafana after installing.
+
+### Manual install
+
+1. Download the latest zip from [Releases](https://github.com/mewc/posthog-grafana-plugin/releases)
+2. Extract into your Grafana plugins directory (default: `/var/lib/grafana/plugins/`)
+3. Allow the unsigned plugin (see above)
 4. Restart Grafana
 
 ## Configuration
 
-1. Go to **Connections → Data sources → Add data source**
-2. Search for "PostHog"
-3. Configure:
-   - **PostHog Instance**: US Cloud, EU Cloud, or Custom URL
-   - **Project ID**: Found in PostHog → Settings → Project
-   - **API Key**: A Personal API Key (create at Settings → Personal API Keys)
-4. Click **Save & Test**
+1. **Connections → Data sources → Add data source** → search "PostHog"
+2. Configure:
+   - **PostHog Instance** — US Cloud, EU Cloud, or Custom (self-hosted) URL
+   - **Project ID** — found in PostHog → Settings → Project
+   - **API Key** — a **Personal API Key** (PostHog → Settings → Personal API Keys). This is _not_ the project API key.
+3. **Save & Test** — should show a green checkmark
 
 ## Query Examples
 
@@ -74,12 +92,12 @@ GROUP BY day
 ORDER BY day
 ```
 
-## Time Range Macros
+### Time range macros
 
-| Macro | Description |
-|-------|-------------|
-| `$__timeFrom` | Start of the selected Grafana time range |
-| `$__timeTo` | End of the selected Grafana time range |
+| Macro | Replaced with |
+|-------|---------------|
+| `$__timeFrom` | Start of selected Grafana time range, e.g. `'2024-01-15 10:30:00'` |
+| `$__timeTo` | End of selected Grafana time range |
 
 ## Development
 
@@ -87,41 +105,106 @@ ORDER BY day
 
 - Node.js >= 22
 - Go >= 1.23
-- [Mage](https://magefile.org/)
+- [Mage](https://magefile.org/) — `go install github.com/magefile/mage@latest`
 - Docker & Docker Compose
 
-### Setup
+### Quick start
 
 ```bash
-npm install
-go mod tidy
+# Install dependencies
+npm install && go mod tidy
+
+# Build frontend + backend
+npm run build && mage -v buildAll
+
+# Start Grafana with the plugin loaded
+docker compose up --build
 ```
 
-### Build
+Open http://localhost:3000 — anonymous admin access is enabled in dev mode.
+
+### Development mode (hot reload)
 
 ```bash
-# Frontend
-npm run build
-
-# Backend (all platforms)
-mage -v buildAll
-
-# Development mode with hot reload
-npm run dev    # frontend watcher
-docker compose up --build  # Grafana + backend
+npm run dev                    # terminal 1: frontend watcher
+docker compose up --build      # terminal 2: Grafana + backend auto-rebuild
 ```
 
-### Test
+The Docker Compose setup uses [supervisord](https://github.com/grafana/grafana-plugin-sdk-go) to watch for backend changes, rebuild via `mage`, and attach a [Delve](https://github.com/go-delve/delve) debugger on port 2345.
+
+### Auto-provisioning
+
+The plugin is auto-provisioned via `provisioning/datasources/default.yaml`. Set these env vars before `docker compose up` to skip manual configuration:
 
 ```bash
-# Frontend
-npm run test:ci
-
-# Backend
-go test ./pkg/...
+export POSTHOG_URL=https://us.posthog.com       # or eu.posthog.com, or self-hosted
+export POSTHOG_PROJECT_ID=12345
+export POSTHOG_API_KEY=phx_your_personal_api_key
 ```
 
-Grafana runs at http://localhost:3000 (anonymous admin access enabled in dev mode).
+Or just configure the datasource manually in the Grafana UI.
+
+### Tests
+
+```bash
+npm run typecheck       # TypeScript type checking
+npm run lint            # ESLint
+npm run test:ci         # Jest (frontend)
+go test ./pkg/...       # Go (backend)
+```
+
+## Distribution
+
+### GitHub Release (recommended)
+
+Push a version tag to trigger the automated release workflow:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The [release workflow](.github/workflows/release.yml) builds frontend + backend, packages a zip, and creates a GitHub Release. Users install with:
+
+```bash
+grafana-cli --pluginUrl <zip-url> plugins install mewc-posthog-datasource
+```
+
+### Manual packaging
+
+```bash
+npm run build && mage -v buildAll
+cp -r dist mewc-posthog-datasource
+zip -r mewc-posthog-datasource-1.0.0.zip mewc-posthog-datasource/
+```
+
+Install the zip on any Grafana instance by extracting into the plugins directory and setting `allow_loading_unsigned_plugins`.
+
+### Optional: Plugin signing
+
+Signing is **not required** for self-hosted Grafana with `allow_loading_unsigned_plugins`. It is only required if you want to:
+
+- Distribute without requiring users to modify `grafana.ini`
+- Submit to the [Grafana plugin catalog](https://grafana.com/grafana/plugins/)
+
+To sign, you need a free [Grafana Cloud](https://grafana.com) account (just for the signing token — no Grafana Cloud instance needed):
+
+1. Sign up at [grafana.com](https://grafana.com)
+2. Go to **My Account → Security → Access Policies**
+3. Create a policy with scope `plugins:write`, then create a token
+4. Add the token as a GitHub repo secret: `GRAFANA_ACCESS_POLICY_TOKEN`
+
+The release workflow will automatically sign the plugin when this secret is present.
+
+### Optional: Grafana plugin catalog submission
+
+To publish to the official Grafana plugin catalog (so users can install via `grafana-cli plugins install` without a URL):
+
+1. Ensure the repo is **public** and the plugin is **signed** (see above)
+2. Validate: `npx -y @grafana/plugin-validator@latest -sourceCodeUri https://github.com/mewc/posthog-grafana-plugin mewc-posthog-datasource-1.0.0.zip`
+3. Submit at [grafana.com](https://grafana.com) → **Org Settings → My Plugins → Submit New Plugin**
+4. Provide the release zip URL, source repo URL, and SHA1 hash (`sha1sum *.zip`)
+5. Grafana team reviews (automated checks + manual code review)
 
 ## License
 

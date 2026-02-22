@@ -1,11 +1,11 @@
 import React, { ChangeEvent } from 'react';
-import { InlineField, Input, SecretInput, Select } from '@grafana/ui';
-import { DataSourcePluginOptionsEditorProps, SelectableValue } from '@grafana/data';
+import { InlineField, Input, SecretInput, Combobox, type ComboboxOption } from '@grafana/ui';
+import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { PostHogDataSourceOptions, PostHogSecureJsonData } from '../types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<PostHogDataSourceOptions, PostHogSecureJsonData> {}
 
-const URL_OPTIONS: Array<SelectableValue<string>> = [
+const URL_OPTIONS: Array<ComboboxOption<string>> = [
   { label: 'US Cloud', value: 'https://us.posthog.com', description: 'PostHog US Cloud (us.posthog.com)' },
   { label: 'EU Cloud', value: 'https://eu.posthog.com', description: 'PostHog EU Cloud (eu.posthog.com)' },
   { label: 'Custom', value: 'custom', description: 'Self-hosted or custom URL' },
@@ -17,12 +17,10 @@ export function ConfigEditor(props: Props) {
 
   const isCustomUrl = !URL_OPTIONS.some((opt) => opt.value === jsonData.posthogUrl && opt.value !== 'custom');
 
-  const selectedUrlOption = isCustomUrl
-    ? URL_OPTIONS.find((opt) => opt.value === 'custom')
-    : URL_OPTIONS.find((opt) => opt.value === jsonData.posthogUrl);
+  const selectedValue = isCustomUrl ? 'custom' : jsonData.posthogUrl;
 
-  const onUrlOptionChange = (value: SelectableValue<string>) => {
-    if (value.value === 'custom') {
+  const onUrlOptionChange = (option: ComboboxOption<string>) => {
+    if (option.value === 'custom') {
       onOptionsChange({
         ...options,
         jsonData: { ...jsonData, posthogUrl: '' },
@@ -30,7 +28,7 @@ export function ConfigEditor(props: Props) {
     } else {
       onOptionsChange({
         ...options,
-        jsonData: { ...jsonData, posthogUrl: value.value || '' },
+        jsonData: { ...jsonData, posthogUrl: option.value },
       });
     }
   };
@@ -67,9 +65,9 @@ export function ConfigEditor(props: Props) {
   return (
     <>
       <InlineField label="PostHog Instance" labelWidth={20} tooltip="Select your PostHog deployment">
-        <Select
+        <Combobox
           options={URL_OPTIONS}
-          value={selectedUrlOption}
+          value={selectedValue}
           onChange={onUrlOptionChange}
           width={40}
         />
