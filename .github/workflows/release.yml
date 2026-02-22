@@ -32,9 +32,11 @@ jobs:
       - run: mage -v buildAll
 
       - name: Sign plugin
-        run: npx --yes @grafana/sign-plugin@latest
+        run: >-
+          npx --yes @grafana/sign-plugin@latest
+          --rootUrls
+          https://chartcastr.grafana.net,https://grafana-production-a86a4.up.railway.app,http://localhost:3000
         if: env.GRAFANA_ACCESS_POLICY_TOKEN != ''
-        continue-on-error: true
         id: sign
 
       - name: Validate plugin
