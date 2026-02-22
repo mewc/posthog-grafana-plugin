@@ -34,6 +34,8 @@ jobs:
       - name: Sign plugin
         run: npx --yes @grafana/sign-plugin@latest
         if: env.GRAFANA_ACCESS_POLICY_TOKEN != ''
+        continue-on-error: true
+        id: sign
 
       - name: Validate plugin
         run: |
