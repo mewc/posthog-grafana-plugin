@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: PostHog
+    type: mewc-posthog-datasource
+    access: proxy
+    editable: true
+    jsonData:
+      posthogUrl: ${POSTHOG_URL:-https://us.posthog.com}
+      projectId: ${POSTHOG_PROJECT_ID:-}
+    secureJsonData:
+      apiKey: ${POSTHOG_API_KEY:-}
