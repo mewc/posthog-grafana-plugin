@@ -15,33 +15,33 @@ jobs:
       GRAFANA_ACCESS_POLICY_TOKEN: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
 
-      - run: go install github.com/magefile/mage@latest
+      - run: go install github.com/magefile/mage@v1.15.0
       - run: npm ci
       - run: npm run build
       - run: mage -v buildAll
 
       - name: Sign plugin
         run: >-
-          npx --yes @grafana/sign-plugin@latest
-          --rootUrls
-          https://chartcastr.grafana.net,https://grafana-production-a86a4.up.railway.app,http://localhost:3000
+          npx --yes @grafana/sign-plugin@3.2.1
+          ${{ secrets.GRAFANA_PLUGIN_ROOT_URLS && format('--rootUrls {0}', secrets.GRAFANA_PLUGIN_ROOT_URLS) || '' }}
         if: env.GRAFANA_ACCESS_POLICY_TOKEN != ''
+        continue-on-error: true
         id: sign
 
       - name: Validate plugin
         run: |
-          npx --yes @grafana/plugin-validator@latest \
+          npx --yes @grafana/plugin-validator@0.37.1 \
             -sourceCodeUri file://. \
             dist/
         continue-on-error: true
@@ -57,7 +57,7 @@ jobs:
           md5sum mewc-posthog-datasource-${{ github.ref_name }}.zip > mewc-posthog-datasource-${{ github.ref_name }}.zip.md5
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           files: |
             mewc-posthog-datasource-${{ github.ref_name }}.zip
