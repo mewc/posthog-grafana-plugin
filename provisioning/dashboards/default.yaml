@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: PostHog
+    orgId: 1
+    folder: PostHog
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

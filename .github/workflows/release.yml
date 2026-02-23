@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -32,11 +34,8 @@ jobs:
       - run: mage -v buildAll
 
       - name: Sign plugin
-        run: >-
-          npx --yes @grafana/sign-plugin@3.2.1
-          ${{ secrets.GRAFANA_PLUGIN_ROOT_URLS && format('--rootUrls {0}', secrets.GRAFANA_PLUGIN_ROOT_URLS) || '' }}
+        run: npx --yes @grafana/sign-plugin@3.2.1
         if: env.GRAFANA_ACCESS_POLICY_TOKEN != ''
-        continue-on-error: true
         id: sign
 
       - name: Validate plugin
@@ -50,6 +49,11 @@ jobs:
         run: |
           cp -r dist chartcastr-posthog-datasource
           zip -r chartcastr-posthog-datasource-${{ github.ref_name }}.zip chartcastr-posthog-datasource/
+
+      - name: Generate provenance attestation
+        uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0
+        with:
+          subject-path: chartcastr-posthog-datasource-${{ github.ref_name }}.zip
 
       - name: Generate checksum
         run: |

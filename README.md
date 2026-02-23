@@ -164,7 +164,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The [release workflow](.github/workflows/release.yml) builds frontend + backend, packages a zip, and creates a GitHub Release. Users install with:
+The [release workflow](https://github.com/mewc/posthog-grafana-plugin/blob/main/.github/workflows/release.yml) builds frontend + backend, packages a zip, and creates a GitHub Release. Users install with:
 
 ```bash
 grafana-cli --pluginUrl <zip-url> plugins install chartcastr-posthog-datasource

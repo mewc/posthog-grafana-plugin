@@ -3,3 +3,7 @@ services:
     extends:
       file: .config/docker-compose-base.yaml
       service: grafana
+    environment:
+      POSTHOG_URL: ${POSTHOG_URL:-https://us.posthog.com}
+      POSTHOG_PROJECT_ID: ${POSTHOG_PROJECT_ID:-}
+      POSTHOG_API_KEY: ${POSTHOG_API_KEY:-}
