@@ -1,5 +1,5 @@
 {
-  "name": "mewc-posthog-datasource",
+  "name": "chartcastr-posthog-datasource",
   "version": "1.0.0",
   "description": "PostHog data source plugin for Grafana",
   "scripts": {

@@ -1,7 +1,7 @@
 services:
   grafana:
     user: root
-    container_name: 'mewc-posthog-datasource'
+    container_name: 'chartcastr-posthog-datasource'
 
     build:
       context: .
@@ -19,13 +19,13 @@ services:
     cap_add:
       - SYS_PTRACE
     volumes:
-      - ../dist:/var/lib/grafana/plugins/mewc-posthog-datasource
+      - ../dist:/var/lib/grafana/plugins/chartcastr-posthog-datasource
       - ../provisioning:/etc/grafana/provisioning
-      - ..:/root/mewc-posthog-datasource
+      - ..:/root/chartcastr-posthog-datasource
 
     environment:
       NODE_ENV: development
-      GF_LOG_FILTERS: plugin.mewc-posthog-datasource:debug
+      GF_LOG_FILTERS: plugin.chartcastr-posthog-datasource:debug
       GF_LOG_LEVEL: debug
       GF_DATAPROXY_LOGGING: 1
-      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: mewc-posthog-datasource
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: chartcastr-posthog-datasource

@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -129,6 +130,38 @@ func TestHogqlResponseToFrameEmpty(t *testing.T) {
 
 	if len(frame.Fields) != 0 {
 		t.Errorf("expected 0 fields, got %d", len(frame.Fields))
+	}
+}
+
+func TestHogQLAPIResponseUnmarshalTypes(t *testing.T) {
+	// New format: array of arrays [["ClickHouseType", "PostHogType"]]
+	newFormat := `{"columns":["1"],"types":[["UInt8","UInt8"]],"results":[[1]]}`
+	var resp1 HogQLAPIResponse
+	if err := json.Unmarshal([]byte(newFormat), &resp1); err != nil {
+		t.Fatalf("failed to unmarshal new format: %v", err)
+	}
+	if len(resp1.Types) != 1 || resp1.Types[0] != "UInt8" {
+		t.Errorf("new format: expected [UInt8], got %v", resp1.Types)
+	}
+
+	// Old format: array of strings ["String"]
+	oldFormat := `{"columns":["name"],"types":["String"],"results":[["test"]]}`
+	var resp2 HogQLAPIResponse
+	if err := json.Unmarshal([]byte(oldFormat), &resp2); err != nil {
+		t.Fatalf("failed to unmarshal old format: %v", err)
+	}
+	if len(resp2.Types) != 1 || resp2.Types[0] != "String" {
+		t.Errorf("old format: expected [String], got %v", resp2.Types)
+	}
+
+	// Multi-column new format
+	multiCol := `{"columns":["ts","count"],"types":[["DateTime","DateTime"],["Int64","Int64"]],"results":[]}`
+	var resp3 HogQLAPIResponse
+	if err := json.Unmarshal([]byte(multiCol), &resp3); err != nil {
+		t.Fatalf("failed to unmarshal multi-column: %v", err)
+	}
+	if len(resp3.Types) != 2 || resp3.Types[0] != "DateTime" || resp3.Types[1] != "Int64" {
+		t.Errorf("multi-column: expected [DateTime, Int64], got %v", resp3.Types)
 	}
 }
 

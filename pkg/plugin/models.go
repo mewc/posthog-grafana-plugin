@@ -45,8 +45,50 @@ type HogQLQueryBody struct {
 
 type HogQLAPIResponse struct {
 	Columns []string        `json:"columns"`
-	Types   []string        `json:"types"`
+	Types   []string        `json:"-"`
 	Results [][]interface{} `json:"results"`
 	Error   string          `json:"error"`
 	Detail  string          `json:"detail"`
+}
+
+// UnmarshalJSON handles PostHog's types field which can be either:
+// - ["String", "Int64"] (old format)
+// - [["String", "String"], ["Int64", "Int64"]] (new format: [clickhouse_type, posthog_type])
+func (r *HogQLAPIResponse) UnmarshalJSON(data []byte) error {
+	type Alias HogQLAPIResponse
+	aux := &struct {
+		Types json.RawMessage `json:"types"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	if len(aux.Types) == 0 {
+		return nil
+	}
+
+	// Try array of strings first: ["String", "Int64"]
+	var stringTypes []string
+	if err := json.Unmarshal(aux.Types, &stringTypes); err == nil {
+		r.Types = stringTypes
+		return nil
+	}
+
+	// Try array of arrays: [["String", "String"], ["Int64", "Int64"]]
+	var arrayTypes [][]string
+	if err := json.Unmarshal(aux.Types, &arrayTypes); err == nil {
+		r.Types = make([]string, len(arrayTypes))
+		for i, pair := range arrayTypes {
+			if len(pair) > 0 {
+				r.Types[i] = pair[0] // Use the first element (ClickHouse type)
+			}
+		}
+		return nil
+	}
+
+	return fmt.Errorf("unexpected types format: %s", string(aux.Types))
 }

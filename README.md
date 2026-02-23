@@ -16,8 +16,8 @@ Query [PostHog](https://posthog.com) data directly from Grafana using **HogQL** 
 
 ```bash
 grafana-cli \
-  --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/v1.0.0/mewc-posthog-datasource-v1.0.0.zip \
-  plugins install mewc-posthog-datasource
+  --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/v1.0.0/chartcastr-posthog-datasource-v1.0.0.zip \
+  plugins install chartcastr-posthog-datasource
 ```
 
 Since this plugin is not yet signed via the Grafana catalog, you need to allow it explicitly.
@@ -26,13 +26,13 @@ Add to `grafana.ini`:
 
 ```ini
 [plugins]
-allow_loading_unsigned_plugins = mewc-posthog-datasource
+allow_loading_unsigned_plugins = chartcastr-posthog-datasource
 ```
 
 Or as an environment variable (useful for Docker/Kubernetes):
 
 ```bash
-GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=mewc-posthog-datasource
+GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=chartcastr-posthog-datasource
 ```
 
 Restart Grafana after installing.
@@ -167,15 +167,15 @@ git push origin v1.0.0
 The [release workflow](.github/workflows/release.yml) builds frontend + backend, packages a zip, and creates a GitHub Release. Users install with:
 
 ```bash
-grafana-cli --pluginUrl <zip-url> plugins install mewc-posthog-datasource
+grafana-cli --pluginUrl <zip-url> plugins install chartcastr-posthog-datasource
 ```
 
 ### Manual packaging
 
 ```bash
 npm run build && mage -v buildAll
-cp -r dist mewc-posthog-datasource
-zip -r mewc-posthog-datasource-1.0.0.zip mewc-posthog-datasource/
+cp -r dist chartcastr-posthog-datasource
+zip -r chartcastr-posthog-datasource-1.0.0.zip chartcastr-posthog-datasource/
 ```
 
 Install the zip on any Grafana instance by extracting into the plugins directory and setting `allow_loading_unsigned_plugins`.
@@ -201,7 +201,7 @@ The release workflow will automatically sign the plugin when this secret is pres
 To publish to the official Grafana plugin catalog (so users can install via `grafana-cli plugins install` without a URL):
 
 1. Ensure the repo is **public** and the plugin is **signed** (see above)
-2. Validate: `npx -y @grafana/plugin-validator@latest -sourceCodeUri https://github.com/mewc/posthog-grafana-plugin mewc-posthog-datasource-1.0.0.zip`
+2. Validate: `npx -y @grafana/plugin-validator@latest -sourceCodeUri https://github.com/mewc/posthog-grafana-plugin chartcastr-posthog-datasource-1.0.0.zip`
 3. Submit at [grafana.com](https://grafana.com) → **Org Settings → My Plugins → Submit New Plugin**
 4. Provide the release zip URL, source repo URL, and SHA1 hash (`sha1sum *.zip`)
 5. Grafana team reviews (automated checks + manual code review)

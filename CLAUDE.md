@@ -4,7 +4,7 @@
 
 - **Go backend** (`pkg/`): Handles PostHog API auth, executes HogQL queries, converts results to Grafana data frames
 - **TypeScript frontend** (`src/`): Config UI, HogQL query editor with Monaco SQL editor
-- **Plugin ID**: `mewc-posthog-datasource`
+- **Plugin ID**: `chartcastr-posthog-datasource`
 - **Executable**: `gpx_posthog`
 
 ## Key Files

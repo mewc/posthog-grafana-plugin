@@ -48,32 +48,32 @@ jobs:
 
       - name: Package plugin
         run: |
-          cp -r dist mewc-posthog-datasource
-          zip -r mewc-posthog-datasource-${{ github.ref_name }}.zip mewc-posthog-datasource/
+          cp -r dist chartcastr-posthog-datasource
+          zip -r chartcastr-posthog-datasource-${{ github.ref_name }}.zip chartcastr-posthog-datasource/
 
       - name: Generate checksum
         run: |
-          sha1sum mewc-posthog-datasource-${{ github.ref_name }}.zip > mewc-posthog-datasource-${{ github.ref_name }}.zip.sha1
-          md5sum mewc-posthog-datasource-${{ github.ref_name }}.zip > mewc-posthog-datasource-${{ github.ref_name }}.zip.md5
+          sha1sum chartcastr-posthog-datasource-${{ github.ref_name }}.zip > chartcastr-posthog-datasource-${{ github.ref_name }}.zip.sha1
+          md5sum chartcastr-posthog-datasource-${{ github.ref_name }}.zip > chartcastr-posthog-datasource-${{ github.ref_name }}.zip.md5
 
       - name: Create release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           files: |
-            mewc-posthog-datasource-${{ github.ref_name }}.zip
-            mewc-posthog-datasource-${{ github.ref_name }}.zip.sha1
-            mewc-posthog-datasource-${{ github.ref_name }}.zip.md5
+            chartcastr-posthog-datasource-${{ github.ref_name }}.zip
+            chartcastr-posthog-datasource-${{ github.ref_name }}.zip.sha1
+            chartcastr-posthog-datasource-${{ github.ref_name }}.zip.md5
           generate_release_notes: true
           body: |
             ## Installation
 
             ```bash
             grafana-cli \
-              --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/${{ github.ref_name }}/mewc-posthog-datasource-${{ github.ref_name }}.zip \
-              plugins install mewc-posthog-datasource
+              --pluginUrl https://github.com/mewc/posthog-grafana-plugin/releases/download/${{ github.ref_name }}/chartcastr-posthog-datasource-${{ github.ref_name }}.zip \
+              plugins install chartcastr-posthog-datasource
             ```
 
-            Then add `allow_loading_unsigned_plugins = mewc-posthog-datasource` to `grafana.ini` and restart Grafana.
+            Then add `allow_loading_unsigned_plugins = chartcastr-posthog-datasource` to `grafana.ini` and restart Grafana.
 
             ## Checksums
 
